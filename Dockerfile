@@ -31,7 +31,7 @@ RUN yum -y localinstall /tmp/xrt_201920.2.3.1301_7.4.1708-xrt.rpm
 RUN yum -y install boost-filesystem opencl-headers ocl-icd ocd-icd-devel clinfo
 
 WORKDIR /grpc/examples/grpc-trt-fgpa
-RUN git clone https://github.com/drankincms/grpc-trt-fgpa.git .
+RUN git clone https://github.com/drankincms/grpc-trt-fgpa.git . -b alveo_facile_docker
 ENV PKG_CONFIG_PATH /usr/local/lib/pkgconfig
 
 RUN git submodule update --init
@@ -39,7 +39,18 @@ RUN git submodule update --init
 RUN --mount=type=bind,target=/tools,source=/tools source /opt/xilinx/xrt/setup.sh && source /tools/xilinx/Vivado/2019.2/settings64.sh && make -j 16
 
 WORKDIR /grpc/examples/grpc-trt-fgpa/hls4ml_c
+COPY haproxy-2.0.14.tar.gz /tmp/haproxy.tar.gz
+RUN tar -xvf /tmp/haproxy.tar.gz
+WORKDIR haproxy-2.0.14
+RUN make clean
+#RUN make -j 8 TARGET=linux-glibc USE_OPENSSL=1 USE_ZLIB=1 USE_PCRE=1 USE_SYSTEMD=1 USE_THREAD=1
+RUN make -j 8 TARGET=linux-glibc USE_OPENSSL=1 USE_ZLIB=1 USE_PCRE=1 USE_THREAD=1
+RUN make install
 
-CMD source /opt/xilinx/xrt/setup.sh && ../server
+WORKDIR /grpc/examples/grpc-trt-fgpa/hls4ml_c
 
+COPY haproxy.cfg haproxy.cfg
+COPY run_proxy_plus_server.sh run_proxy_plus_server.sh
+#CMD source /opt/xilinx/xrt/setup.sh && ./haproxy-2.0.14/haproxy -f haproxy.cfg >& srv.log & && ../server build_dir.hw.xilinx_u250_xdma_201830_2/alveo_hls4ml.xclbin 8083 8
+CMD source /opt/xilinx/xrt/setup.sh && ./run_proxy_plus_server.sh
 
