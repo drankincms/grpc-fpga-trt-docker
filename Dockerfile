@@ -31,7 +31,8 @@ RUN yum -y localinstall /tmp/xrt_201920.2.3.1301_7.4.1708-xrt.rpm
 RUN yum -y install boost-filesystem opencl-headers ocl-icd ocd-icd-devel clinfo
 
 WORKDIR /grpc/examples/grpc-trt-fgpa
-RUN git clone https://github.com/drankincms/grpc-trt-fgpa.git . -b alveo_facile_docker
+RUN git clone https://github.com/drankincms/grpc-trt-fgpa.git . -b aws
+
 ENV PKG_CONFIG_PATH /usr/local/lib/pkgconfig
 
 RUN git submodule update --init
